@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>EaselJS Example: Rollovers and Drag & Drop</title>
+
+<link href="styles/styles.css" rel="stylesheet" type="text/css" />
+<script src="../lib/easel.js"></script>
+</head>
+
+<body>
+		<canvas id="testCanvas" width="854" height="480" style="background:url(img/level1.jpg);"></canvas>
+
+<script>
+	
+	var publicVar={}
+	publicVar.canvas = document.querySelector("#testCanvas");
+	publicVar.stage = new Stage(publicVar.canvas)
+	publicVar.stage.enableMouseOver();
+
+	var pointTo={
+		init:function(x,y,e){
+			this.animation.init();
+			this.ordinate.x=x;
+			this.ordinate.y=y;
+			this.evt=e;
+		},
+		tick:function(){
+			publicVar.stage.update();
+		},
+		ordinate:{
+			x:0,
+			y:0
+		},
+		evt:"",
+		animation:(function(){
+			var IO={};
+
+			IO.loadImage=function(src,callback){
+				var image=new Image();
+				image.src=src;
+				image.onload = callback;
+				return image;
+			} //end of loadImage
+
+
+			IO.init=function(){
+				IO.loadImage("img/point2.png",newFirstLeave)
+
+			}
+			
+			function newFirstLeave(event){
+				var leave=this;
+				newLeave.prototype=new Bitmap(leave);
+				firstLeave=new newLeave(pointTo.ordinate.x,pointTo.ordinate.y,0,this.height/2,pointTo.evt);
+				firstLeave.title="asdfa";
+				firstLeave.onPress(pointTo.evt);
+				publicVar.stage.enableMouseOver();				
+				Ticker.addListener(pointTo);
+			}
+
+			
+			return IO;
+			
+		})()
+
+	}
+	var nextTarget;
+	function newLeave(x,y,regX,regY,e){
+				this.x=x;
+				this.y=y;
+				this.regX=regX;
+				this.regY=this.image.height/2;
+				this.scaleX=0.01;//make sure the spawing little enough
+				var that=this;
+				var x3,y3; 
+				publicVar.stage.addChild(this)
+				this.onPress=function(evt){
+					var target=evt.target;
+					var originalWidth,originalScaleX;
+					originalWidth=that.image.width;					
+					originalScaleX=that.scaleX;					
+					evt.onMouseMove = function(ev) {
+							 	var angle;
+							 	x3=ev.stageX;
+							 	y3=ev.stageY;
+							 	if(e!="evt")
+									console.log(that.x)
+							 	that.scaleX=(Math.sqrt(Math.pow(x3-that.x,2)+Math.pow(y3-that.y,2)))/originalWidth + originalScaleX;
+							 	//to rotate the object
+							 	angle=Math.atan((y3-that.y)/(x3-that.x))*180/Math.PI;
+							 	if(that.x-x3>0)
+							 		angle=angle-180;
+							 	that.rotation=angle;
+							}
+
+					evt.onMouseUp = explode;
+					function explode(){
+						publicVar.stage.removeChild(that)
+
+					}
+				}//end of onpress
+
+				return this;
+
+			}
+
+
+
+				var img=pointTo.animation.loadImage("img/TimeBG.png",addBg)
+				function addBg(event){
+					var bitmap=new Bitmap(this);
+					bitmap.x=100;
+					bitmap.y=100;
+					publicVar.stage.addChild(bitmap);
+					publicVar.stage.update();
+					bitmap.onPress=function(evt){
+						console.log(evt)
+						pointTo.init(evt.stageX,evt.stageY,evt);
+						evt.onMouseUp=function(){
+						}
+					}	 
+
+				}
+				  var img1=pointTo.animation.loadImage("img/TimeBG.png",addBg1)
+				function addBg1(event){
+					var bitmap=new Bitmap(this);
+					bitmap.x=400;
+					bitmap.y=200;
+					publicVar.stage.addChild(bitmap);
+					publicVar.stage.update();
+					bitmap.onMouseOver=function(evt){
+						this.onMouseOver=function(){return false;}
+						var a=new newLeave(evt.stageX,evt.stageY,0,this.height/2,"evt")
+						
+						a.onPress(pointTo.evt);	
+						//firstLeave.onPress(pointTo.evt)
+						//console.log(pointTo.evt,"Asdf")
+						//pointTo.evt.onMouseMove(pointTo.evt)
+					}	 
+
+				}
+	//pointTo.init(400,260);
+</script>
+</body>
+</html>

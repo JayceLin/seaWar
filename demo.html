@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>EaselJS Example: Rollovers and Drag & Drop</title>
+
+<link href="styles/styles.css" rel="stylesheet" type="text/css" />
+<script src="../lib/easel.js"></script>
+</head>
+
+<body>
+		<canvas id="testCanvas" width="854" height="480" style="background:url(img/level1.jpg);"></canvas>
+
+<script>
+	
+	var publicVar={}
+	publicVar.canvas = document.querySelector("#testCanvas");
+	publicVar.stage = new Stage(publicVar.canvas)
+	var Bomb={
+		bombFactor:{
+			shape:null,
+			update:true
+
+		},
+
+		Init:function(){
+			publicVar.stage.enableMouseOver();
+			this.loadImage("img/skill_false.png",this.privateFun.loadUnInitContainer);
+			this.loadImage("img/skill_Empty.png",this.privateFun.loadCounter);
+
+		},
+
+		loadImage:function(src,callback){
+			var image=new Image();
+			image.src=src;
+			image.onload = callback;
+			return image;
+		}, //end of loadImage
+
+		tick:function(){
+			publicVar.stage.update();
+		},
+
+		privateFun:(function(extVar){
+			var IO={};//give the IO for external calling
+			var InitCT=new Container();
+			var UnInitCT=new Container();
+			var InitBombBitmap=null;
+			var UnInitBombBitmap=null;
+			var publicVar=extVar;
+			var shape;
+			var count=0;
+			var label;
+			///function to load the bomb image(skill_false.png) which has not inited with 0 degree;
+			IO.loadUnInitContainer=function(event){
+				var unInitBomb=this;
+				UnInitBombBitmap=new Bitmap(unInitBomb);
+				UnInitBombBitmap.x=754;
+				UnInitBombBitmap.y=396;
+				UnInitCT.addChild(UnInitBombBitmap);
+				publicVar.stage.addChild(UnInitCT);
+				setTimeout(bombReady,1000)//attention here,just for testing and waiting for the init IO
+			}//end of loadUninitBomb
+
+			//function to load the counter beside the bomb
+			IO.loadCounter=function(){
+					var counterMap=new Bitmap(this);
+					counterMap.x=705;
+					counterMap.y=435;
+					UnInitCT.addChild(counterMap);
+					drawCount(count);
+					publicVar.stage.update();
+
+			}			
+			IO.addCount=function(){
+					count++;
+					drawCount(count)
+			}
+			function drawCount(text){
+
+					UnInitCT.removeChild(label);
+					label = new Text(text.toString(), "20px Arial", "orange");
+					label.textAlign = "center";
+					label.x = 708;
+					label.y = 435;
+					label.maxWidth=40;
+					UnInitCT.addChild(label)
+					publicVar.stage.update();
+				}
+
+
+			//function to switch the bomb to initialized state
+			var bombReady=function (){
+				 Bomb.loadImage("img/skill_But.png",bombAnimation)
+				 UnInitBombBitmap.visible=false;
+			} //end of bombReady
+
+			var bombAnimation=function (event){
+				InitBombBitmap=new Bitmap(this);
+				var g = new Graphics();		
+				InitBombBitmap.x=756;
+				InitBombBitmap.y=394;
+				InitBombBitmap.regX=InitBombBitmap.width/2;
+				InitBombBitmap.regY=InitBombBitmap.height/2;
+				InitCT.addChild(InitBombBitmap);
+				publicVar.stage.addChild(InitCT);
+				InitBombBitmap.onMouseOver = function() {	
+					g.ss(1).beginStroke("#fff").de(680,375,200,100)
+					g.draw(publicVar.canvas.getContext('2d'))
+					shape =new Shape(g);
+					InitCT.addChild(shape);
+				}
+				// InitBombBitmap.onMouseOut=function(){
+
+				// 	InitCT.removeChild(shape);
+				// }
+				InitBombBitmap.onPress = function(evt) {
+					var target=InitCT;
+					var offset = {x:target.x-evt.stageX, y:target.y-evt.stageY};
+					evt.onMouseMove = function(ev) {
+								target.x = ev.stageX+offset.x;
+								target.y = ev.stageY+offset.y;				
+								IO.addCount()
+							}
+					evt.onMouseUp = explode;
+
+				}//end of onPress
+			 	Ticker.addListener(Bomb);
+
+			}//end of bombAnimation
+
+			var explode=function (){
+
+				var explodeImg=new Image();
+				explodeImg.src="img/result.png";
+				explodeImg.onload=function(event){
+					var spriteSheet=new SpriteSheet({
+					images:[event.target],
+					frames:{width:253,height:210,regX:85,regY:75},
+					animations:{
+						explode:[0,13,"explode"]
+					}
+					});
+				var bmpAnim = new BitmapAnimation(spriteSheet);
+				bmpAnim.x=InitBombBitmap.x;
+				bmpAnim.y=InitBombBitmap.y;
+				bmpAnim.regX=bmpAnim.width/2;
+				bmpAnim.regY=bmpAnim.height/2;
+				InitCT.removeChild(InitBombBitmap)
+				InitCT.removeChild(shape)
+				bmpAnim.gotoAndPlay("explode");		
+				bmpAnim.currentAnimationFrame=5;
+				var i=0;
+				bmpAnim.onAnimationEnd=function(){
+						i++;
+						if(i==3){
+							InitCT.removeChild(bmpAnim);
+							UnInitBombBitmap.visible=true;
+						}
+					}
+				InitCT.addChild(bmpAnim);
+				}
+			
+
+			}//end of explode
+
+			return IO;
+		})(publicVar)//function to protect private Interface
+
+	}
+
+	Bomb.Init()
+
+	var timer={
+		Init:function(){
+			this.funs.InitClock();
+
+		},
+		tick:function(){
+			publicVar.stage.update();
+
+		},
+		allTime:"",
+		funs:(function(){
+			var IO={}
+			var se,m=0,s=0 ;
+			var label;
+			var container=new Container();
+			var bitmap;
+			function drawClock(text){
+
+				container.removeChild(label);
+				label = new Text(text, "36px Arial", "orange");
+				label.textAlign = "center";
+				label.x = 30+87;
+				label.y = 20+41;
+				label.maxWidth=100;
+				container.addChild(label)
+				publicVar.stage.addChild(container)
+				Ticker.addListener(timer);
+			} 
+			function second(){  
+					s+=1; 
+					if(s>0 && (s%60)==0){m+=1;s=0;}  
+					if(m>0 && (m%60)==0){ m=0;}  					
+					return (m>9?m:'0'+m)+":"+(s>9?s:('0'+s))				 
+			}  
+			function startclock(){
+				timer.allTime=second();
+				drawClock(timer.allTime);
+				se=setTimeout(startclock,1000)
+
+			}
+			IO.loadImage=function(src,callback){
+				var image=new Image();
+				image.src=src;
+				image.onload = callback;
+				return image;
+			}
+			function drawBg(x,y){
+				
+				var img=IO.loadImage("img/1.png",addBg)
+				function addBg(event){
+					bitmap=new Bitmap(this);
+					bitmap.x=x;
+					bitmap.y=y;
+					container.addChild(bitmap);
+					publicVar.stage.update();
+
+
+				}
+
+			}
+			IO.InitClock=function(){
+				drawBg(725,197);
+				drawClock("00:00");
+				setTimeout(startclock,1000)
+			}
+
+			return IO;
+		}())
+
+	}
+	timer.Init();
+
+	
+</script>
+</body>
+</html>

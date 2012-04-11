@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+
+    <head><title>Template</title></head>
+    <style></style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="easel.js"></script>
+    <body>
+    	<canvas id="can" height="191" width="240"></canvas>
+    	<canvas id="can2" height="791" width="840"></canvas>
+ 
+    <script>
+    var obj={
+    	count:0,
+    	shouldUpdate:true,
+    	constant:{
+    		canvasHeight:191,
+    		canvasWidth:240
+    	}
+  
+    }
+    obj.tick=function(e){
+    	if(this.shouldUpdate){
+	    	//bmpAnim.x+=bmpAnim.vX;
+			//bmpAnim.y+=bmpAnim.vY;
+			stage.update();
+
+			bubbleAnim.x+=3;
+	        bubbleAnim.y+=2;
+
+	        
+	        for(var i=0;i<bubbleList.length;i++){
+	        	var currentBubble=bubbleList[i];
+	        	currentBubble.x+=3;
+	        	currentBubble.y+=2;
+	        	//collision here
+	        	if(currentBubble.x >this.constant.canvasWidth && currentBubble.y>this.constant.canvasHeight ){
+	        		 
+	        		!currentBubble.isDead && receiveBubbleList.push(currentBubble);
+	        		//remove 
+	        		bubbleList.splice(i,1)
+	        		console.log("receive BubbleList",receiveBubbleList)
+	        	}
+
+	        }
+			console.log("ticking")
+			if(this.count++>500){
+				Ticker.removeAllListeners()
+				//Ticker.removeListener(e);
+			}
+    	}
+
+    }
+    	var canvas=document.querySelector("#can"),
+    		ctx1=canvas.getContext("2d"),
+	    	stage=new Stage(canvas),	   
+	    	img=new Image(),
+	    	img2=new Image(),
+	    	bubbleWalk=new Image(),
+	    	bubbleAttack=new Image(),
+	    	bitmap=new Bitmap(img);
+	    	 
+
+	    //img.src="MonsterAIdle.png";
+	    stage.enableMouseOver();
+	    img.src="result.png";
+	    img2.src="pop.png";
+	    bubbleWalk.src="arms_walk.png";
+	    bubbleAttack.src="arms_attack.png";
+
+	    bubbleList=[];
+	    receiveBubbleList=[];
+	    img.onload=function(){
+
+	    	var spriteSheet=new SpriteSheet({
+	    		images:[img],
+	    		frames:{width:77,height:91,regX:38,regY:45},
+	    		animations:{
+	    			stand:[0,7,"stand"]
+	    		}
+	    	});
+	    	var anotherSpriteSheet=new SpriteSheet({
+	    		images:[img2],
+	    		frames:{width:79,height:79,regX:40,regY:40},
+	    		animations:{
+	    			anotherstand:[0,3,"anotherstand"]
+	    		}
+	    	});
+	    	var movingBubble=new SpriteSheet({
+	    		images:[bubbleWalk],
+	    		frames:{width:36,height:37,regX:18,regY:18},
+	    		animations:{
+	    			walk:[0,7,"walk"]
+	    		}
+	    	});
+	    	var	attackingBubble=new SpriteSheet({
+	    		images:[bubbleAttack],
+	    		frames:{width:36,height:37,regX:18,regY:18},
+	    		animations:{
+	    			attack:[0,7,"attack"]
+	    		}
+	    	});
+
+
+
+	    	bmpAnim=new BitmapAnimation(spriteSheet);
+
+	    	bmpAnim.gotoAndPlay("stand");
+	    	bmpAnim.speed=1;
+	    	bmpAnim.direction=90;
+	    	bmpAnim.vX=3;
+	    	bmpAnim.vY=0;
+	    	bmpAnim.x=38;
+	    	bmpAnim.y=45;
+	    	bmpAnim.currentAnimationFrame=0;
+	    	
+			
+	    	//================
+	    	//bubble animation
+	    	bubbleAnim=new BitmapAnimation(movingBubble);
+
+	    	var bubbleContainer=new Container();
+
+	    	//================
+	    	var g=new Graphics();
+	    		g.setStrokeStyle(1,"round");
+	       	
+	       	var shape=new Shape(g);
+	       		stage.addChild(shape);
+
+	        bmpAnim.onMouseOver=function(e){
+	        	console.log("mouseover ing",bitmap.scaleX)
+	        	this.scaleX=this.scaleY=bitmap.scaleX*1.1;
+	        };
+	        bmpAnim.onMouseOut=function(e){
+	        	console.log("mouseout ing",bitmap.scaleX)
+	        	this.scaleX=this.scaleY=bitmap.scaleX;
+	        };
+	        bmpAnim.onPress=function(e){
+	        	var offset = {x:this.x-e.stageX, y:this.y-e.stageY},
+	        		that=this;
+	        		bubbleAnim.x=that.x,
+	        		bubbleAnim.y=that.y;
+
+	        	/*e.onMouseMove=function(evt){
+	        		that.x=evt.stageX+offset.x;
+	        		that.y=evt.stageY+offset.y;
+	        		//that.scaleX=offset.x;
+	        		//that.sacleY=offset.y;
+	        	}*/
+	        	
+	        	e.onMouseUp=function(evt){
+	        		
+	        		bubbleAnim.gotoAndPlay("walk");
+	        		bubbleAnim.currentAnimationFrame=0;
+	        		
+	        		/*for(var i=0,len=5;i<len;i++){
+	        			stage.addChild(bubbleAnim);
+	        			//bubbleAnim.paused=true;
+	        			bubbleList.push(bubbleAnim);
+	        			bubbleAnim=bubbleAnim.clone();
+	        		}
+	        		for(var i=0,len=0;i<len;i++){
+	        			setInterval(function(){
+	        				bubbleList[i].paused=false;
+	        			},200)
+	        		}*/
+	        		//stage.addChild(bubbleAnim);
+	        		var count=0;
+        			setTimeout(function(){
+        				
+        				var _temp=function(){
+        					var b=bubbleAnim.clone();
+        					b.x=that.x;
+        					b.y=that.y;
+        					b.onMouseOver=function(){
+        						stage.removeChild(this);
+        						b.isDead=true;
+        					}
+
+        					b.gotoAndPlay("walk");
+        					b.currentAnimationFrame=0;
+        					bubbleList.push(b);
+        					stage.addChild(b);
+        					count++;
+        				}
+        				_temp();
+    					if(count<6){
+    						console.log("!! count: ",count)
+    						setTimeout(arguments.callee,1000)
+    					}
+    					else{
+    						console.log("@@")
+    						clearTimeout(_temp);
+    					}
+        				
+        			},200)
+	        		//}
+	        		console.log(stage.getNumChildren())
+
+	        	}
+
+	        };
+	        bmpAnim.onClick=function(e){
+	        	console.log("clicking ")
+	        	this.spriteSheet=anotherSpriteSheet;
+	        	this.gotoAndPlay("anotherstand");
+	        	bmpAnim.currentAnimationFrame=0;
+	        };
+
+	        stage.addChild(bmpAnim);
+			//stage.update();
+	    	Ticker.addListener(obj);
+Ticker.removeListener(obj);
+	    	Ticker.setFPS(12)
+
+	    	
+
+
+	    }
+ 
+
+//===================================================================================
+	    var anotherObj={
+	    	shouldUpdate:true,
+	    	tick:function(e){
+	    		this.shouldUpdate && stage2.update()
+	    	}
+	    };
+
+	    var subImg=new Image(),
+	    	can2=document.querySelector("#can2"),
+	    	stage2=new Stage(can2);
+	    	stage2.enableMouseOver();
+
+	    subImg.src="point2.png";
+	    subImg.onload=function(){
+	    	subBitmap=new Bitmap(subImg);
+		   	subBitmap.x=300;
+		   	subBitmap.y=400;
+		   	subBitmap.regX=0;
+		   	subBitmap.regY=52;
+		   	//subBitmap.rotation=5;
+		   	//subBitmap.skewX=50;
+		   	
+		    subBitmap.onPress=function(e){
+		    	//console.log(e.stageX,this.x);
+		    	anotherObj.shouldUpdate=true;
+
+		    	var tempObj={
+		    		oldStageX:e.stageX,
+		    		oldStageY:e.stageY,
+		    		originalWidth:this.image.width,
+		    		originalHeight:this.image.height,
+		    		scale:this.scaleX
+
+		    	},
+		    	that=this;
+		    	e.onMouseMove=function(evt){
+		    		var delta={
+		    			x:evt.stageX-tempObj.oldStageX,
+		    			y:evt.stageY-tempObj.oldStageY
+		    		};
+		    		//if(evt.stageX-that.x>0){
+
+		    			that.scaleX=delta.x/tempObj.originalWidth + tempObj.scale;
+		    			//that.scaleY=delta.y/tempObj.originalHeight + tempObj.scale;
+		    			 
+		    		//}
+		    		/*else{
+		    			//var source=
+		    			that.scaleX=-source/tempObj.originalWidth-tempObj.scale;
+		    			//console.log("left",source/tempObj.originalWidth,tempObj.scale)
+		    			console.log("left,source",source)
+		    		}*/
+		    		
+		    		that.rotation= (180/3.14) * Math.atan2(evt.stageY-that.y,evt.stageX-that.x)
+		    		/*console.log("evt.stageY:",evt.stageY,"evt.stageX:",evt.stageX,
+		    			"that.y",that.y,"that.x",that.x,
+		    			"evt.stageY-that.y",Math.abs(evt.stageY-that.y),"evt.stageX-that.x",Math.abs(evt.stageX-that.x),
+		    			"final:",
+		    			parseInt((180/3.14) * Math.atan2(Math.abs(evt.stageY-that.y),Math.abs(evt.stageX-that.x)))
+					);*/
+		    		//console.log("rotation",that.rotation);
+		    	}
+		    };
+		   
+
+		    subBitmap.onMouseOut=function(e){
+		    	//anotherObj.shouldUpdate=false;
+		    };
+
+		    stage2.addChild(subBitmap);
+		    //stage2.update()
+		    Ticker.addListener(anotherObj);
+	    }
+
+
+
+
+
+	</script>
+	<script>
+
+	</script>
+    </body>
+</html>
+

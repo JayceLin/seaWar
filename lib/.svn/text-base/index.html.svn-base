@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <title>War</title>
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+                <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+                <script type="text/javascript" src="easel.js"></script>
+                <script type="text/javascript" src="jquery-1.6.4.min.js"></script>
+                <script type="text/javascript" src="resource-loader.js"></script>
+                <script>
+                        function StartPage(){
+                                var canvas;
+                                var container;
+                                var stage;
+                                var resourcesURL = ["./MainMenu/start.png","./MainMenu/help.png","./MainMenu/about.png",
+                                                "./MainMenu/achievement.png","./MainMenu/exit.png","./MainMenu/background.jpg",
+                                                "./music/music.png"];
+                                
+                                var resourceLoader = new ResourceLoader(resourcesURL, 
+                                                                                        function(){
+                                                                                                console.log("start page load success.");
+                                                                                                loadComplete();
+                                                                                        },
+                                                                                        function(){
+                                                                                                console.log("start page load error.");
+                                                                                        });
+                                var viewItems =[{url:"./MainMenu/start.png", x:15, y:15, callback:null},
+                                                        {url:"./MainMenu/help.png", x:15, y:105, callback:null},
+                                                        {url:"./MainMenu/about.png", x:15, y:195, callback:null},
+                                                        {url:"./MainMenu/achievement.png", x:15, y:285, callback:null},
+                                                        {url:"./MainMenu/exit.png", x:15, y:375, callback:null}];
+                                var imageItemTable = new Array();
+                                var update = true;
+                                var resources;
+                                this.init = function(){
+                                        resourceLoader.startLoad();
+                                }
+                                var loadComplete = function() {
+                                        canvas = $('#mainView')[0];
+                                        //canvas = document.getElementById("testCanvas");       
+                                        stage = new Stage(canvas);
+                                        container = new Container();
+                                        
+                                        // enable touch interactions if supported on the current device:
+                                        if (Touch.isSupported()) { Touch.enable(stage); }
+                                        // enabled mouse over / out events
+                                        stage.enableMouseOver(10);
+                                        stage.addChild(container);
+                                        resources = resourceLoader.getResources();
+                                        var bmp = new Bitmap(resources["./MainMenu/background.jpg"]);
+                                        container.addChild(bmp);
+                                        $.each(viewItems,function(index, item){
+                                                /*var image = new Image(item);
+                                                image.src = item.url;
+                                                image.onload = handleImageLoad;
+                                                imageItemTable[image.src] = item;
+                                                */
+                                                constructButton(item);
+                                        });
+                                }
+                                
+                                var constructButton = function(item) {
+                                        //console.log(event.target.src);
+                                        //console.log(event.target);
+                                        var bitmap;
+                                        //var item = imageItemTable[event.target.src];
+                                        console.log(item);
+                                        console.log(item.x);
+                                        console.log(item.y);
+                                        // create and populate the screen with random daisies:
+                                        bitmap = new Bitmap(resources[item.url]);
+                                        bitmap.x = item.x;
+                                        bitmap.y = item.y;
+                                        console.log(container.getNumChildren());
+                                        bitmap.name = "bmp_"+container.getNumChildren();
+                                        bitmap.scaleX = 1.0;
+                                        bitmap.scaleY = 1.0;
+                                        
+                                        console.log(bitmap);
+                                        // wrapper function to provide scope for the event handlers:
+                                        (function(t) {
+                                                t.onPress = function(evt) {
+                                                        //console.log(evt.target);
+                                                        //console.log(evt.target.name);
+                                                        switch(evt.target.name) {
+                                                                case "bmp_1": stage.removeAllChildren();
+                                                                                        update = true;
+                                                                                        console.log(evt.target.name);
+                                                                                        break;
+                                                                case "bmp_3": console.log(evt.target.name);
+                                                                                        break;
+                                                                case "bmp_5": console.log(evt.target.name);
+                                                                                        break;
+                                                                case "bmp_7": console.log(evt.target.name);
+                                                                                        break;
+                                                                case "bmp_9": console.log(evt.target.name);
+                                                                                        break;
+                                                                default: alert("iiiiiiiiiiii");
+                                                        }
+                                                        //console.log(evt.target.src);
+                                                        //alert("aaaaaaaa");
+                                                }
+                                                t.onMouseOver = function() {
+                                                        console.log("over scale =>"+t.scaleX+"[START]");
+                                                        console.log(t.x);
+                                                        console.log(t.y);
+                                                        t.x=t.x-11.55;
+                                                        t.y=t.y-5.55;
+                                                        console.log(t.x);
+                                                        console.log(t.y);
+                                                        t.scaleX = t.scaleY = 1.1;
+                                                        update = true;
+                                                        console.log("over scale =>"+t.scaleX+"[END]");
+                                                }
+                                                t.onMouseOut = function() {
+                                                        console.log("out scale =>"+t.scaleX+"[START]");
+                                                        t.x=t.x+11.55;
+                                                        t.y=t.y+5.55;
+                                                        t.scaleX = t.scaleY = 1.0;
+                                                        update = true;
+                                                        console.log("out scale =>"+t.scaleX+"[END]");
+                                                }
+                                        })(bitmap);                             
+                                        container.addChild(bitmap);
+                                        loadSoundIcon();
+                                        Ticker.addListener(stage);
+                                }
+                                var loadSoundIcon = function() {
+                                        var bmp = new Bitmap(resources["./music/music.png"]);
+                                        bmp.x = 793;
+                                        bmp.y = 420;
+                                        container.addChild(bmp);
+                                }
+                                this.update = function(){
+                                        if (update) {
+                                                update = false; // only update once
+                                                stage.update();
+                                                console.log("stage update");
+                                        }
+                                }
+                        }
+                        
+                        
+                        function init(){
+                                var startPage = new StartPage();
+                                startPage.init();
+                        
+                                var tick = function() {
+                                        startPage.update();
+                                }
+                        }
+                        
+                        $(init);
+                </script>
+        </head>
+
+<body>
+        <div id="hideId">
+                <canvas id="mainView" width="854" height="480"></canvas>
+        </div>
+</body>
+</html>

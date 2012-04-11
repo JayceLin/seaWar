@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <script src="lib/easel.js"></script>
+</head>
+<body>
+
+  <div id="log"></div>
+
+  <script id="worker1" type="javascript/worker">
+    // This script won't be parsed by JS engines because its type is javascript/worker.
+    self.onmessage = function(e) {
+      self.postMessage('msg from worker');
+      executeCommand(e.data)
+    };
+    // Rest of your worker code goes here.
+    var funCollection={
+      sayhi:function(options){
+        self.postMessage("I'm saying hi to",options.name)
+      }
+    }
+    var executeCommand=function(options){
+      funCollection[options.command] && funCollection[options.command](options.args);
+    }
+  </script>
+
+  <script>
+    function log(msg) {
+      // Use a fragment: browser will only render/reflow once.
+      var fragment = document.createDocumentFragment();
+          fragment.appendChild(document.createTextNode(msg));
+          fragment.appendChild(document.createElement('br'));
+
+      document.querySelector("#log").appendChild(fragment);
+    }
+    var BlobBuilder=WebKitBlobBuilder
+    var bb = new BlobBuilder();
+    bb.append(document.querySelector('#worker1').textContent);
+
+
+    var worker = new Worker(window.webkitURL.createObjectURL(bb.getBlob()));
+
+
+    var canvas=document.querySelector("#canvas"),
+        ctx=canvas.getContext("2d"),
+        img=document.querySelector("#img");
+
+
+
+    img.onload=function(){
+          var aimg=new Image();
+              aimg.src=img.src;
+
+          stage=new Stage(canvas),
+          bitAnim=new BitmapAnimation(new SpriteSheet({
+            images:[aimg],
+            frames:{width:77,height:91,regX:36,regY:45},
+            animations:{stand:[0,7,"stand"]}
+          }));
+          bitAnim.x=6;
+          bitAnim.y=5;
+          bitAnim.gotoAndPlay("stand");
+          bitAnim.currentAnimationFrame=0;
+
+      animList=[];
+      bubbleList=[];
+      worker.onmessage = function(e) {
+        //console.log("Received: " + e.data.result);
+       // console.log(e.data.x);
+        //bitAnim.x=e.data.x;
+        //bitAnim.y=e.data.y;
+        console.log(e.data.name)
+        
+        if(e.data.list){
+          for(var i=0,arr=e.data.list,len=arr.length;i<len;i++){
+            animList[i].x=arr[i].x;
+            animList[i].y=arr[i].y;
+            bubbleList[i].x=arr[i].x;
+            bubbleList[i].y=arr[i].y;
+            console.log(animList[i].x,animList[i].y)
+          }  
+        }
+        
+
+      }
+
+      for(var i=0;i<10;i++){
+        var b=bitAnim.clone();
+        b.x=Math.random()*1000+60;
+        b.y=Math.random()*700+50;
+        stage.addChild(b);
+        animList[i]={},
+        animList[i].x=b.x,
+        animList[i].y=b.y;
+        bubbleList.push(b);
+      }
+
+      /*worker.postMessage({
+        command:"moveAll",
+        args:{
+          list:animList,
+          name:"bubbleMove"
+        }
+      });*/
+      
+     /* setTimeout(function(){
+          worker.postMessage({
+            command:"stopCalculate",
+            args:{
+                name:"bubbleMove"
+              }
+          })
+      },2000);
+*/
+  var shouldUpdate=false,
+      count=0,
+      elem=bubbleList[0];
+
+      stage.tick=function(){
+       if(count++>5){
+            count=0;
+           // this.update();
+           elem.paused=false;
+       }
+       else{
+          elem.paused=true;
+       }
+
+        this.update();
+      }
+      //stage.update();
+      Ticker.addListener(stage);
+      Ticker.setFPS(30);
+    }
+    worker.postMessage({
+      command:"sayhi",
+      args:{
+        name:"Zws"
+      }
+    }); // Start the worker.
+  </script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+
+
+#fwindow{
+    height: 100%;
+    width: 100%;
+}
+#canvasWrapper{
+    margin: auto;
+    height: 640px;
+    width: 960px;
+}
+#mainView{
+	position:absolute;
+	z-index: 1;
+}
+#testCanvas{
+	position:absolute;
+	z-index: 1;
+}

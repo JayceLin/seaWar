@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>EaselJS Example: Rollovers and Drag & Drop</title>
+
+<link href="styles/styles.css" rel="stylesheet" type="text/css" />
+<script src="../lib/easel.js"></script>
+</head>
+
+<body>
+		<canvas id="testCanvas" width="854" height="480" style="background:url(img/level1.jpg);"></canvas>
+
+<script>
+	
+	var publicVar={}
+	publicVar.canvas = document.querySelector("#testCanvas");
+	publicVar.stage = new Stage(publicVar.canvas)
+	publicVar.stage.enableMouseOver();
+	var Utility={
+	beget:function(obj){
+		var f=function(){};
+		f.prototype=obj;
+		return new f();
+	},
+	extend:function(Sub,Super){
+		Sub.prototype=this.beget(Super.prototype)
+	},
+	extendPro:function(obj,extendFun){
+		if(typeof(obj)!==Object && !(obj instanceof Function))
+			return false;
+		for(var i=0;i<extendFun.length;i++){
+			obj.prototype[extendFun[i].funName]=extendFun[i].fun;
+
+			}
+		}
+	};
+
+	//arguments declaratioin :evt is the onPress target ,and each time to init new LeaveObj ,you must pass the first onPress target
+	var LeaveObj=function(x,y,evt){
+		this.x = x|0;
+		this.y = y|0;
+		this._evt = evt;
+		this.scaleX=0.01;
+		// this.tick=function(){
+		// 	console.log("ticking")
+		// 	publicVar.stage.update();	
+		// }
+		
+	}
+	var ticks={
+		a:"",
+		tick:function(){publicVar.stage.update();}
+	}
+	LeaveObj.prototype=new Bitmap();
+
+
+	Utility.extendPro(LeaveObj,[
+			{
+				funName:"init",
+				fun:function(){
+					
+					var that=this;
+					var image=new Image();
+					image.src="img/point2.png";
+					image.onload = function(){
+						that.image=this;
+						that.regX=0;
+						that.regY=this.height/2;
+						publicVar.stage.addChild(that);
+						//publicVar.stage.update();
+						ticks.a++;
+						Ticker.addListener(ticks);
+
+					}
+					this.onPress(this,this._evt);							
+					
+				}
+			},
+			{
+				funName:"onPress",
+				fun:function(that,evt){
+					console.log(that)
+					if(evt.target==undefined)
+						return false;
+					var originalWidth,originalScaleX;
+					originalWidth=that.image.width;					
+					originalScaleX=that.scaleX;					
+					evt.onMouseMove = function(ev) {
+							 	var angle;
+							 	x3=ev.stageX;
+							 	y3=ev.stageY;
+							 	if(e!="evt")
+									console.log(that.x)
+							 	that.scaleX=(Math.sqrt(Math.pow(x3-that.x,2)+Math.pow(y3-that.y,2)))/originalWidth + originalScaleX;
+							 	//to rotate the object
+							 	angle=Math.atan((y3-that.y)/(x3-that.x))*180/Math.PI;
+							 	if(that.x-x3>0)
+							 		angle=angle-180;
+							 	that.rotation=angle;
+							}
+
+					evt.onMouseUp = explode;
+					function explode(){
+						publicVar.stage.removeChild(that)
+
+					}					
+				}
+			}
+
+
+
+		])
+function loadImage(src,callback){
+				var image=new Image();
+				image.src=src;
+				image.onload = callback;
+				return image;
+			} //end of loadImage
+	var img=loadImage("img/TimeBG.png",addBg)
+				function addBg(event){
+					var bitmap=new Bitmap(this);
+					bitmap.x=100;
+					bitmap.y=100;
+					publicVar.stage.addChild(bitmap);
+					publicVar.stage.update();
+					bitmap.onPress=function(evt){
+						a=new LeaveObj(evt.stageX,evt.stageY,evt)
+						a.init();
+						//console.log(a)
+						evt.onMouseUp=function(){
+						}
+					}	 
+
+				}
+
+	// var LeaveObj={
+	// 	init:function(x,y,e){
+	// 		this.animation.init();
+	// 		this.ordinate.x=x;
+	// 		this.ordinate.y=y;
+	// 		this.evt=e;
+	// 	},
+	// 	tick:function(){
+	// 		publicVar.stage.update();
+	// 	},
+	// 	ordinate:{
+	// 		x:0,
+	// 		y:0
+	// 	},
+	// 	evt:"",
+	// 	animation:(function(){
+	// 		var IO={};
+
+	// 		// IO.loadImage=function(src,callback){
+	// 		// 	var image=new Image();
+	// 		// 	image.src=src;
+	// 		// 	image.onload = callback;
+	// 		// 	return image;
+	// 		// } //end of loadImage
+
+
+	// 		// IO.init=function(){
+	// 		// 	IO.loadImage("img/point2.png",newFirstLeave)
+
+	// 		// }
+			
+	// 		function newFirstLeave(event){
+	// 			var leave=this;
+	// 			newLeave.prototype=new Bitmap(leave);
+	// 			firstLeave=new newLeave(LeaveObj.ordinate.x,LeaveObj.ordinate.y,0,this.height/2,LeaveObj.evt);
+	// 			firstLeave.title="asdfa";
+	// 			firstLeave.onPress(LeaveObj.evt);
+	// 			publicVar.stage.enableMouseOver();				
+	// 			Ticker.addListener(LeaveObj);
+	// 		}
+
+			
+	// 		return IO;
+			
+	// 	})()
+
+	// }
+	// var nextTarget;
+	// function newLeave(x,y,regX,regY,e){
+	// 			this.x=x;
+	// 			this.y=y;
+	// 			this.regX=regX;
+	// 			this.regY=this.image.height/2;
+	// 			this.scaleX=0.01;//make sure the spawing little enough
+	// 			var that=this;
+	// 			var x3,y3; 
+	// 			publicVar.stage.addChild(this)
+	// 			this.onPress=function(evt){
+	// 				var target=evt.target;
+	// 				var originalWidth,originalScaleX;
+	// 				originalWidth=that.image.width;					
+	// 				originalScaleX=that.scaleX;					
+	// 				evt.onMouseMove = function(ev) {
+	// 						 	var angle;
+	// 						 	x3=ev.stageX;
+	// 						 	y3=ev.stageY;
+	// 						 	if(e!="evt")
+	// 								console.log(that.x)
+	// 						 	that.scaleX=(Math.sqrt(Math.pow(x3-that.x,2)+Math.pow(y3-that.y,2)))/originalWidth + originalScaleX;
+	// 						 	//to rotate the object
+	// 						 	angle=Math.atan((y3-that.y)/(x3-that.x))*180/Math.PI;
+	// 						 	if(that.x-x3>0)
+	// 						 		angle=angle-180;
+	// 						 	that.rotation=angle;
+	// 						}
+
+	// 				evt.onMouseUp = explode;
+	// 				function explode(){
+	// 					publicVar.stage.removeChild(that)
+
+	// 				}
+	// 			}//end of onpress
+
+	// 			return this;
+
+	// 		}
+	//LeaveObj.init(400,260);
+</script>
+</body>
+</html>
